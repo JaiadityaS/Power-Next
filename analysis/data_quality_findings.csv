@@ -1,0 +1,26 @@
+finding,value
+train_shape,"(1000, 11)"
+test_shape,"(350, 9)"
+train_columns,"['Test_ID', 'Applied_Voltage_kV', 'Load_Current_A', 'Ambient_Temperature_C', 'Test_Duration_min', 'Sensor_S1', 'Sensor_S2', 'Sensor_S3', 'Sensor_S4', 'Reference_Parameter', 'Validity_Label']"
+test_columns,"['Test_ID', 'Applied_Voltage_kV', 'Load_Current_A', 'Ambient_Temperature_C', 'Test_Duration_min', 'Sensor_S1', 'Sensor_S2', 'Sensor_S3', 'Sensor_S4']"
+train_dtypes,"{'Test_ID': 'str', 'Applied_Voltage_kV': 'float64', 'Load_Current_A': 'float64', 'Ambient_Temperature_C': 'float64', 'Test_Duration_min': 'float64', 'Sensor_S1': 'float64', 'Sensor_S2': 'float64', 'Sensor_S3': 'float64', 'Sensor_S4': 'float64', 'Reference_Parameter': 'float64', 'Validity_Label': 'str'}"
+train_missing,"{'Test_ID': 0, 'Applied_Voltage_kV': 0, 'Load_Current_A': 0, 'Ambient_Temperature_C': 0, 'Test_Duration_min': 0, 'Sensor_S1': 6, 'Sensor_S2': 2, 'Sensor_S3': 7, 'Sensor_S4': 29, 'Reference_Parameter': 0, 'Validity_Label': 0}"
+test_missing,"{'Test_ID': 0, 'Applied_Voltage_kV': 0, 'Load_Current_A': 0, 'Ambient_Temperature_C': 0, 'Test_Duration_min': 0, 'Sensor_S1': 1, 'Sensor_S2': 3, 'Sensor_S3': 2, 'Sensor_S4': 11}"
+missingness_by_label,"{'Valid': {'Test_ID': 0, 'Applied_Voltage_kV': 0, 'Load_Current_A': 0, 'Ambient_Temperature_C': 0, 'Test_Duration_min': 0, 'Sensor_S1': 0, 'Sensor_S2': 0, 'Sensor_S3': 0, 'Sensor_S4': 29, 'Reference_Parameter': 0, 'Validity_Label': 0}, 'Invalid': {'Test_ID': 0, 'Applied_Voltage_kV': 0, 'Load_Current_A': 0, 'Ambient_Temperature_C': 0, 'Test_Duration_min': 0, 'Sensor_S1': 6, 'Sensor_S2': 2, 'Sensor_S3': 7, 'Sensor_S4': 0, 'Reference_Parameter': 0, 'Validity_Label': 0}}"
+class_balance,"{'Valid': 866, 'Invalid': 134}"
+exact_full_row_dups,0
+dup_test_ids,0
+dup_measurement_vectors,24
+dup_measurement_groups,12
+dup_conflicting_ref_param,12
+dup_conflicting_validity,0
+dup_labels,{'Invalid': 24}
+test_dup_measurement_vectors,8
+near_dup_by_rounding,"{'3': 24, '2': 24, '1': 24, '0': 24}"
+negative_sensor_values,"{'Sensor_S1': 0, 'Sensor_S2': 1, 'Sensor_S3': 0, 'Sensor_S4': 0}"
+zero_sensor_values,"{'Sensor_S1': 1, 'Sensor_S2': 1, 'Sensor_S3': 1, 'Sensor_S4': 0}"
+extreme_values,"{'Applied_Voltage_kV': {'iqr_outliers': 0, 'robust_z_outliers': 0, 'min': 8.0142, 'max': 31.9783, 'mean': 20.135588300000002, 'median': 19.985, 'std': 7.125441616113189}, 'Load_Current_A': {'iqr_outliers': 0, 'robust_z_outliers': 0, 'min': 15.0079, 'max': 109.9526, 'mean': 63.2721393, 'median': 63.7113, 'std': 27.88685446960906}, 'Ambient_Temperature_C': {'iqr_outliers': 4, 'robust_z_outliers': 0, 'min': 18.0, 'max': 55.0, 'mean': 34.1803927, 'median': 34.589150000000004, 'std': 7.51755952936152}, 'Test_Duration_min': {'iqr_outliers': 0, 'robust_z_outliers': 0, 'min': 5.0434, 'max': 59.9745, 'mean': 31.9908627, 'median': 31.83625, 'std': 15.798382753440395}, 'Sensor_S1': {'iqr_outliers': 5, 'robust_z_outliers': 3, 'min': 0.0, 'max': 28.5205, 'mean': 13.503142555331992, 'median': 13.627749999999999, 'std': 4.084499884790287}, 'Sensor_S2': {'iqr_outliers': 14, 'robust_z_outliers': 7, 'min': -0.2015, 'max': 28.0601, 'mean': 13.663168737474951, 'median': 13.57855, 'std': 3.926916076132973}, 'Sensor_S3': {'iqr_outliers': 2, 'robust_z_outliers': 0, 'min': 0.0, 'max': 35.7555, 'mean': 16.967139577039276, 'median': 16.9269, 'std': 5.154166679815583}, 'Sensor_S4': {'iqr_outliers': 11, 'robust_z_outliers': 4, 'min': 11.4004, 'max': 87.7375, 'mean': 49.75686477857879, 'median': 49.4543, 'std': 12.533115716289895}}"
+ks_train_test,"{'Applied_Voltage_kV': {'statistic': np.float64(0.0561), 'p_value': np.float64(0.372)}, 'Load_Current_A': {'statistic': np.float64(0.0467), 'p_value': np.float64(0.6047)}, 'Ambient_Temperature_C': {'statistic': np.float64(0.0349), 'p_value': np.float64(0.8986)}, 'Test_Duration_min': {'statistic': np.float64(0.0401), 'p_value': np.float64(0.7803)}, 'Sensor_S1': {'statistic': np.float64(0.0324), 'p_value': np.float64(0.9386)}, 'Sensor_S2': {'statistic': np.float64(0.0468), 'p_value': np.float64(0.6062)}, 'Sensor_S3': {'statistic': np.float64(0.0496), 'p_value': np.float64(0.529)}, 'Sensor_S4': {'statistic': np.float64(0.0467), 'p_value': np.float64(0.6232)}}"
+VIF,"[{'feature': 'Applied_Voltage_kV', 'VIF': np.float64(14.99)}, {'feature': 'Load_Current_A', 'VIF': np.float64(4.36)}, {'feature': 'Ambient_Temperature_C', 'VIF': np.float64(1.01)}, {'feature': 'Test_Duration_min', 'VIF': np.float64(1.05)}, {'feature': 'Sensor_S1', 'VIF': np.float64(6.36)}, {'feature': 'Sensor_S2', 'VIF': np.float64(5.13)}, {'feature': 'Sensor_S3', 'VIF': np.float64(9.88)}, {'feature': 'Sensor_S4', 'VIF': np.float64(1.01)}]"
+dup_invalid_chi2,151.3643
+dup_invalid_p,0.0

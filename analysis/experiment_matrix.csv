@@ -1,0 +1,26 @@
+exp,task,model,features,missing,scaling,class_weight,key_hp,validation,metrics,reason
+1,Classification,Logistic Regression,Raw operating + electrical,Median impute + indicators,StandardScaler,balanced,"C, penalty",GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC",Interpretable baseline for classification
+2,Classification,Random Forest,All raw + engineered,Median impute,None,balanced_subsample,"n_estimators, max_depth",GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC",Strong nonlinear baseline
+3,Classification,Extra Trees,All raw + sensor consistency,Median impute,None,balanced,"n_estimators, max_depth",GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC","More randomized than RF, may reduce overfitting"
+4,Classification,HistGBClassifier,All features (raw NaN),Native,None,sample_weight,"max_iter, lr, max_depth",GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC","Native NaN handling, no imputation needed"
+5,Classification,CatBoost,Raw features + missing indicators,Native,None,Balanced,"iterations, depth, lr",GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC","Excellent defaults, ordered boosting"
+6,Classification,XGBoost,All engineered features,Native,None,scale_pos_weight,"n_est, max_depth, lr, subsample",GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC",Flexible regularization for small dataset
+7,Classification,LightGBM,All features,Native,None,is_unbalance,"num_leaves, lr, min_child",GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC","Fastest GBM, leaf-wise growth"
+8,Classification,CatBoost,Sensor consistency only,Native,None,Balanced,"iterations, depth",GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC",Test if sensor consistency alone predicts validity
+9,Classification,Stacking (LR + RF + XGB),Top compact features,Mixed,Per-model,Per-model,"Meta-learner, base hp",GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC",Combine linear + nonlinear strengths
+10,Classification,Soft Voting (CatB + LGBM + HGB),All features,Native,None,Per-model,voting weights,GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC",Diverse boosting ensemble
+11,Regression,Ridge,Raw + electrical features,Median impute,StandardScaler,N/A,alpha,GroupKFold(5),"MAE, RMSE, R², MedAE",Linear baseline for regression
+12,Regression,Elastic Net,All engineered (scaled),Median impute + indicators,StandardScaler,N/A,"alpha, l1_ratio",GroupKFold(5),"MAE, RMSE, R², MedAE",Sparse feature selection via L1
+13,Regression,Huber,Raw + electrical features,Median impute,StandardScaler,N/A,"epsilon, alpha",GroupKFold(5),"MAE, RMSE, R², MedAE",Robust to sensor outliers
+14,Regression,Random Forest,All raw + engineered,Median impute,None,N/A,"n_estimators, max_depth",GroupKFold(5),"MAE, RMSE, R², MedAE",Nonlinear baseline for regression
+15,Regression,HistGBRegressor,All features (raw NaN),Native,None,N/A,"max_iter, lr, max_depth",GroupKFold(5),"MAE, RMSE, R², MedAE",Native NaN handling for regression
+16,Regression,CatBoost,Raw features,Native,None,N/A,"iterations, depth, lr",GroupKFold(5),"MAE, RMSE, R², MedAE",Excellent defaults for regression
+17,Regression,XGBoost,All engineered features,Native,None,N/A,"n_est, max_depth, lr, subsample",GroupKFold(5),"MAE, RMSE, R², MedAE",Flexible nonlinear regression
+18,Regression,LightGBM,All features,Native,None,N/A,"num_leaves, lr, min_child",GroupKFold(5),"MAE, RMSE, R², MedAE",Fast GBM regression
+19,Regression,Ridge,Operating features only (sensor-free),None needed,StandardScaler,N/A,alpha,GroupKFold(5),"MAE, RMSE, R², MedAE",Test regression without any sensor data
+20,Regression,CatBoost,Sensors + sensor consistency only,Native,None,N/A,"iterations, depth",GroupKFold(5),"MAE, RMSE, R², MedAE",Test regression with sensor-heavy features only
+21,Regression,Poly-2 + Ridge,Raw features (polynomial),Median impute,StandardScaler,N/A,alpha,GroupKFold(5),"MAE, RMSE, R², MedAE",Interpretable polynomial formula
+22,Regression,Weighted Avg (Ridge+CatB+LGBM),Model-specific,Mixed,Per-model,N/A,ensemble weights,GroupKFold(5),"MAE, RMSE, R², MedAE",Linear + nonlinear ensemble
+23,Regression,HistGBRegressor,Valid records only,Native,None,N/A,"max_iter, lr, max_depth",GroupKFold(5),"MAE, RMSE, R², MedAE",Test if excluding Invalid improves regression
+24,Regression,Extra Trees,Top compact features,Median impute,None,N/A,"n_estimators, max_depth",GroupKFold(5),"MAE, RMSE, R², MedAE",Compact feature set with diverse model
+25,Classification,HistGBClassifier,Top compact features,Native,None,sample_weight,"max_iter, lr",GroupKFold(5),"F1, BalAcc, ROC-AUC, MCC",Minimal feature set with strong model

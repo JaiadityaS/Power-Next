@@ -11,15 +11,17 @@ import pandas as pd
 from src.contract import OPS, S3, MEASUREMENTS, SUBMISSION_COLS
 
 APPROACH_EXPLANATION = (
-    "Our automated pipeline implements a physics-grounded digital twin and polynomial "
-    "regression ensemble. Operating conditions (voltage, current, ambient temperature, "
-    "duration) predict expected thermal sensor responses (S1-S3). Tests with missing "
+    "Our pipeline implements a physics-grounded digital twin. Operating conditions "
+    "(voltage, current, ambient temperature, duration) predict expected thermal sensor "
+    "responses (S1-S3). Tests with missing "
     "sensors, duplicate operating conditions, or sensor residuals exceeding dynamic "
     "empirical thresholds are classified as Invalid. Hot-spot reference temperatures "
-    "are predicted using a regularized polynomial model trained strictly on verified "
-    "Valid records to eliminate corruption. Attention scoring prioritizes tests by "
-    "combining invalidity status, normalized sensor residual severity, missingness, "
-    "and temperature percentile rank for targeted engineering review."
+    "are predicted by blending a degree-4 polynomial Ridge with gradient-boosted trees "
+    "at a weight chosen out-of-fold, trained strictly on verified Valid records to "
+    "eliminate corrupted targets and clipped to the observed physical range. "
+    "Attention scoring prioritizes tests by "
+    "combining invalidity status, sensor residual severity, missingness and "
+    "temperature percentile rank for targeted engineering review."
 )
 
 

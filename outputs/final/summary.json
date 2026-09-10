@@ -1,9 +1,9 @@
 {
   "records_analysed": 350,
   "abnormal_invalid_records": 46,
-  "minimum_predicted_reference_parameter": 13.2623,
-  "maximum_predicted_reference_parameter": 61.6904,
-  "average_predicted_reference_parameter": 26.3159,
+  "minimum_predicted_reference_parameter": 12.7952,
+  "maximum_predicted_reference_parameter": 62.1261,
+  "average_predicted_reference_parameter": 26.4219,
   "highest_attention_test_ids": [
     "TST-0172",
     "TST-0290",

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Finalization and Deliverables Module.
 Owns submission validation, summary generation, attention scoring, and output writing.
 """

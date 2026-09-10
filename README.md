@@ -1,4 +1,4 @@
-﻿# CPRI PowerNext-AI Hackathon — End-to-End Pipeline & Deliverables
+# CPRI PowerNext-AI Hackathon — End-to-End Pipeline & Deliverables
 
 An automated, physics-grounded machine learning pipeline for electrical equipment test analysis, digital twin residual monitoring, and hot-spot temperature prediction.
 
@@ -17,7 +17,8 @@ This repository provides an automated, reproducible, end-to-end pipeline that pr
 
 ## 2. Installation
 
-Requires Python 3.9+ (tested on Python 3.9.13).
+Requires Python 3.9+. Validated end to end on Python 3.13.11 in a clean
+virtual environment installing only from `requirements.txt`.
 
 ```bash
 git clone <repo-url>
@@ -25,15 +26,10 @@ cd Power-Next
 pip install -r requirements.txt
 ```
 
-Pinned dependencies in `requirements.txt`:
-- `pandas==2.3.3`
-- `numpy==2.0.2`
-- `openpyxl==3.1.5`
-- `matplotlib==3.9.4`
-- `seaborn==0.13.2`
-- `scikit-learn==1.6.1`
-- `scipy==1.13.1`
-- `pytest==8.4.2`
+`requirements.txt` specifies minimum versions rather than exact pins: the code
+uses no version-specific API, and pinning to exact older releases can fail to
+build on a newer interpreter than the one it was developed on. The exact
+validated versions are recorded in a comment at the top of that file.
 
 ---
 
@@ -42,14 +38,14 @@ Pinned dependencies in `requirements.txt`:
 Execute the pipeline start-to-finish with a single command:
 
 ```bash
-python run.py --team-name YourTeamName
+python run.py
 ```
 
 ### CLI Arguments
 
 | Flag | Default | Description |
 |---|---|---|
-| `--team-name` | `PowerNext` | Team name used for the output CSV filename (`outputs/final/<TeamName>.csv`) |
+| `--team-name` | `π-thon` | Team name used for the output CSV filename (`outputs/final/<TeamName>.csv`) |
 | `--output-dir` | `outputs/final` | Target directory for all deliverable files |
 | `--skip-charts` | `False` | Optional flag to suppress matplotlib chart generation |
 
@@ -79,11 +75,11 @@ Automated metadata and audit report computed directly from final predictions:
 {
   "records_analysed": 350,
   "abnormal_invalid_records": 46,
-  "minimum_predicted_reference_parameter": 13.2623,
-  "maximum_predicted_reference_parameter": 61.6904,
-  "average_predicted_reference_parameter": 26.3159,
+  "minimum_predicted_reference_parameter": 12.7952,
+  "maximum_predicted_reference_parameter": 62.1261,
+  "average_predicted_reference_parameter": 26.4219,
   "highest_attention_test_ids": ["TST-0172", "TST-0290", "TST-0142"],
-  "approach_explanation": "Our automated pipeline implements a physics-grounded digital twin and polynomial regression ensemble..."
+  "approach_explanation": "Our pipeline implements a physics-grounded digital twin..."
 }
 ```
 *Note: The approach explanation is programmatically enforced to contain 100 words or fewer.*
@@ -133,7 +129,8 @@ Run the full automated test suite:
 pytest tests/ -v
 ```
 
-The test suite consists of 17 tests across two modules:
+The suite is 90 tests. The two integration modules below are P4's;
+`test_p1.py` covers the detector and `test_p3.py` the benchmark.
 
 ### `tests/test_submission.py` (Deliverables Compliance)
 - Exact row count (350) and required columns (`Test_ID`, `Predicted_Reference_Parameter`, `Validity_Label`).

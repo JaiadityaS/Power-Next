@@ -1,4 +1,4 @@
-﻿"""
+"""
 Main Execution Pipeline for CPRI PowerNext-AI Hackathon.
 Assembles sensor twin, regression models, deliverables generation, and QA validation.
 """

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Integration QA: Robustness Attack Test Suite.
 Verifies the pipeline resilience against deliberately corrupted/edge-case test data.
 Protects the 20% unseen-dataset evaluation criterion.

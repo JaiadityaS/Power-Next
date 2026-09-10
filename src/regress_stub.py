@@ -1,4 +1,4 @@
-﻿"""
+"""
 Stub implementation for Person 2 (Reference Parameter Regression).
 Provides fallback stubs and baseline implementation until src/regress.py is integrated.
 """

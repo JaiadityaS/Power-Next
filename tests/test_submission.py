@@ -1,4 +1,4 @@
-﻿"""
+"""
 Validation and Quality Assurance Test Suite for Deliverables.
 Tests submission CSV, summary.json, and diagnostics compliance.
 """

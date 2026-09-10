@@ -1,4 +1,4 @@
-﻿"""
+"""
 Stub implementation for Person 1 (Sensor Digital Twin & Invalid Detection).
 Provides fallback stubs and baseline implementation until src/twin.py is integrated.
 """

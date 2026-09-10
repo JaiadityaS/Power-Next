@@ -1,7 +1,6 @@
 # π-thon — Methodology Note
 
-**Team:** π-thon | **Project:** CPRI Hackathon Screening — Sensor Validity Classification & Reference Parameter Regression  
-**Branch:** integration | **Seed:** 42 | **Folds:** 5-fold StratifiedGroupKFold (folds.csv, committed once)
+**Team:** π-thon | **Task:** CPRI Hackathon Screening — validity classification and Reference Parameter regression | **Seed:** 42 | **Validation:** 5-fold StratifiedGroupKFold, duplicate-grouped, fixed in `folds.csv`
 
 ---
 

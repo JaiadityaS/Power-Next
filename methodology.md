@@ -1,6 +1,6 @@
-# Power-Next: Methodology Note
+# π-thon — Methodology Note
 
-**Project:** CPRI Hackathon Screening — Sensor Validity Classification & Reference Parameter Regression  
+**Team:** π-thon | **Project:** CPRI Hackathon Screening — Sensor Validity Classification & Reference Parameter Regression  
 **Branch:** integration | **Seed:** 42 | **Folds:** 5-fold StratifiedGroupKFold (folds.csv, committed once)
 
 ---
@@ -22,7 +22,7 @@ Both tasks are evaluated on identical 5-fold splits stored in `folds.csv`. The g
 
 **Monitored sensors (outputs, not inputs):** Sensor_S1, S2, S3 are treated as measurements of equipment response, not causal drivers. The twin models the expected sensor readings given the operating conditions; deviations from those expectations are the anomaly signal.
 
-**Sensor_S4 is excluded.** Verified correlation: max |ρ(S4, Reference_Parameter)| = 0.071. Including S4 in the ablation study changes MAE by < 0.002 — confirming it carries no predictive signal and adding it risks noise. The decision is data-driven, not manual.
+**Sensor_S4 is excluded.** Max |ρ(S4, Reference_Parameter)| = 0.071, and including it in the ablation changes MAE by < 0.002. The exclusion is data-driven, not a manual choice.
 
 Test_Duration_min is retained: removing it in the ablation study degrades regression MAE by approximately 0.12, despite its near-zero linear correlation with the target — a classic non-linear interaction captured by tree ensembles and polynomial expansion.
 
@@ -34,7 +34,7 @@ Test_Duration_min is retained: removing it in the ablation study degrades regres
 
 **Residuals → robust Z-score:** Each residual is normalised with a robust Z-score (median-centred, 1.4826 × MAD scaled) to handle non-Gaussian sensor noise without being pulled by the very spikes we are trying to detect.
 
-**Adaptive threshold:** In each fold we compute the empirical gap between the upper boundary of Valid spike scores and the lower boundary of Invalid spike scores. The threshold is placed at the midpoint of this gap, making it self-calibrating. Across 5 folds the gap is 17.96–21.73 (mean: 18.93) and the threshold is 12.62–14.60 (mean: 12.92). The gap is large enough that small noise perturbations do not alter the decision.
+**Adaptive threshold:** In each fold we measure the empirical gap between the highest Valid spike score and the lowest Invalid one, and place the threshold at its midpoint — so it self-calibrates rather than being tuned by hand. Across the five folds that gap spans 17.96–21.73, far wider than any plausible noise perturbation, so the decision is stable.
 
 **Fault-rule precedence (deterministic, no ML):**
 1. missing_sensor — any of S1, S2, S3 is NaN (15 cases)
@@ -42,7 +42,7 @@ Test_Duration_min is retained: removing it in the ablation study degrades regres
 3. sensor_spike — max robust-Z across S1/S2/S3 exceeds threshold (95 cases)
 4. → **Valid**
 
-**OOF result:** Precision = 1.0, Recall = 1.0, F1 = 1.0 across all 5 folds. The twin distinguishes a genuine high-load regime (all three sensors deviate consistently with the expected operating physics) from a sensor fault (one sensor deviates while the others remain on-curve).
+**OOF result:** Precision, recall and F1 all 1.0 across the 5 folds. The twin separates a genuine high-load regime — all three sensors deviating consistently with the operating physics — from a sensor fault, where one deviates while the others stay on-curve.
 
 ---
 
@@ -57,28 +57,25 @@ Test_Duration_min is retained: removing it in the ablation study degrades regres
 
 ## 5. Limitations
 
-- **Polynomial extrapolation:** The degree-4 Ridge model is calibrated to the training operating range (Voltage: 10–25 kV, Current: 50–150 A). Readings outside this envelope may have poorly calibrated residuals and could miss or falsely trigger the spike rule.
-- **Threshold assumes comparable noise level:** The adaptive threshold is derived from training-data noise characteristics. A systematic sensor recalibration event on the live system (shifting the baseline noise floor) would require recomputing the threshold from fresh calibrated reference tests.
-- **Batch duplicate detection:** The duplicate-vector rule requires the duplicated fingerprint to appear more than once in the prediction batch. A standalone duplicate submitted alone would not be flagged by this rule (it would fall through to the spike check).
-- **We deliberately declined the missing-S4 shortcut:** Many rows with S4 NaN are Valid; using S4 missingness as a direct invalidity signal would conflate instrument absence with sensor fault, harming generalisation.
-- **Blend ensemble in regression** carries two models instead of one. We accept that cost: the blend reaches OOF MAE 0.4578 against 0.5095 for the polynomial alone and 0.6498 for the trees alone — a 10% improvement over the best single model, on the metric worth 35% of the score. Where interpretability outranks accuracy, the degree-4 polynomial alone (OOF MAE 0.5095, R² 0.99525) is a defensible substitute and is already fitted inside the same artefact.
-- **Polynomial divergence outside the training hull:** at 1.5× the maximum training current and voltage the raw blend predicts 140.8 °C, which is not physical. Shipped predictions are therefore clipped to the training target range widened by 20% ([1.99, 71.52] °C). No test row required clipping; the guard exists for the second hidden dataset.
-
----
+- **Extrapolation beyond the training hull.** At 1.5× the maximum training current and voltage the raw blend predicts 140.8 °C, which is not physical. Shipped predictions are clipped to the training range widened 20% ([1.99, 71.52] °C). No test row needed clipping; the guard exists for the second hidden dataset. Residuals outside the envelope (10–25 kV, 50–150 A) are also less well calibrated, so the spike rule is less reliable there.
+- **The threshold assumes a comparable noise floor.** A sensor recalibration event on the live system would shift that floor and require re-deriving the threshold from fresh reference tests.
+- **Duplicate detection is batch-scoped.** The rule needs the duplicated fingerprint to appear twice within the batch being scored; a lone duplicate falls through to the spike check.
+- **We declined the missing-S4 shortcut.** Every training row with S4 missing is Valid, but treating that as an invalidity signal would conflate instrument absence with sensor fault and would not generalise.
+- **The blend carries two models.** We accept that cost: OOF MAE 0.4578 against 0.5095 for the polynomial alone, a 10% gain on the criterion worth 35%. The polynomial alone is fitted inside the same artefact where interpretability matters more.
 
 ## 6. Digital Twin Deployment Steps
 
-The twin is fully operational, not hypothetical. Deployment on a live system:
+The twin is operational, not hypothetical. To run it live:
 
-1. **Ingest live readings** — receive the four operating controls (Voltage, Current, Temperature, Duration) and three sensor values (S1, S2, S3) for each completed test.
-2. **Evaluate the twin** — apply the polynomial Ridge models fitted on all 866 Valid training rows to predict expected S1, S2, S3.
-3. **Compute residuals → robust Z-scores** — using the training-set median and MAD for each sensor channel (stored with the model artefact).
-4. **Compare to threshold** — spike_score = max(Z_S1, Z_S2, Z_S3). If spike_score > 12.77 (final fitted threshold), flag as sensor_spike.
-5. **Apply precedence rules** — check for missing values (→ missing_sensor) and fingerprint duplicates (→ duplicate_vector) before the spike check.
-6. **Raise a named alarm** — the fault bucket and the specific suspect sensor (the one with highest robust-Z) are logged and surfaced to the operator. Example: "sensor_spike: S2 (Z=18.4)".
-7. **Log for recalibration** — all spike scores and thresholds are written to an audit log. Quarterly, the threshold is re-derived from new confirmed-Valid tests using the same empirical-gap algorithm.
+1. **Ingest** the four operating controls and the three sensor readings for each completed test.
+2. **Evaluate the twin** — the polynomial Ridge models, fitted on the 866 Valid training rows, predict expected S1, S2, S3.
+3. **Compute residuals as robust Z-scores**, using the training median and MAD per channel, stored alongside the model artefact.
+4. **Compare to threshold** — `spike_score = max(Z_S1, Z_S2, Z_S3)`; above the fitted threshold, flag `sensor_spike`.
+5. **Apply precedence** — missing values (`missing_sensor`) and fingerprint duplicates (`duplicate_vector`) are checked before the spike rule.
+6. **Raise a named alarm** identifying the fault bucket and the specific suspect sensor, e.g. `sensor_spike: S2 (Z=18.4)`, so the operator knows where to look.
+7. **Log for recalibration** — all scores and thresholds go to an audit log; quarterly, the threshold is re-derived from newly confirmed-Valid tests by the same empirical-gap algorithm.
 
-**Measured false-alarm rate on training data:** 0 false positives across 866 Valid rows (FPR = 0.0%). Noise stress tests show the system reaches 100% detection at additive noise magnitude ≥ 20× the training noise floor, with monotonically non-decreasing detection rate and zero false positives at all magnitudes tested.
+**Measured false-alarm rate:** 0 false positives across all 866 Valid training rows. Noise stress tests show zero false positives at every magnitude tested, and full detection once added noise reaches roughly 20× the training noise floor.
 
 ---
 

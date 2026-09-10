@@ -8,10 +8,20 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
+# The team name contains a non-ASCII character and the default Windows console
+# codepage (cp1252) cannot encode it, so an unconfigured console would kill the
+# run on its first print. Force UTF-8 on the streams here rather than asking
+# whoever runs this to set PYTHONIOENCODING first.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
 # ----------------------------------------------------------------------------
 # Top-level Configuration
 # ----------------------------------------------------------------------------
-DEFAULT_TEAM_NAME = "PowerNext"
+DEFAULT_TEAM_NAME = "π-thon"
 DEFAULT_OUTPUT_DIR = "outputs/final"
 
 # ----------------------------------------------------------------------------

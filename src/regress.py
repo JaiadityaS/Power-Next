@@ -88,16 +88,36 @@ def _oof_predictions(X: np.ndarray, y: np.ndarray, frame: pd.DataFrame,
     oof = np.full(len(y), np.nan)
     per_fold = []
     for tr, va in fold_indices(frame):
+        # A caller may hand us a subset that does not span all five folds — the
+        # benchmark nests this inside its own CV loop, for instance. Skip folds
+        # that end up empty on either side rather than fitting on nothing.
+        if len(tr) == 0 or len(va) == 0:
+            continue
         model = make_model()
         model.fit(X[tr], y[tr])
         pred = model.predict(X[va])
         oof[va] = pred
         per_fold.append(float(np.mean(np.abs(pred - y[va]))))
-    assert np.isfinite(oof).all(), "every row must receive an out-of-fold prediction"
+    assert per_fold, "no usable fold: the frame must span at least two folds"
+    assert np.isfinite(oof[~np.isnan(oof)]).all(), "out-of-fold predictions must be finite"
     return oof, per_fold
 
 
+def _covered(*arrays: np.ndarray) -> np.ndarray:
+    """Rows where every supplied out-of-fold vector has a prediction.
+
+    Only ever narrower than everything when the caller passed a frame that does
+    not span all five folds; on the full training set this is all True.
+    """
+    mask = np.ones(len(arrays[0]), dtype=bool)
+    for a in arrays:
+        mask &= np.isfinite(a)
+    return mask
+
+
 def _metrics(y: np.ndarray, pred: np.ndarray) -> dict:
+    m = _covered(pred)
+    y, pred = y[m], pred[m]
     err = pred - y
     ss_res = float(np.sum(err ** 2))
     ss_tot = float(np.sum((y - y.mean()) ** 2))
@@ -145,14 +165,17 @@ def evaluate(train_valid: pd.DataFrame) -> pd.DataFrame:
     })
 
     # Best polynomial by out-of-fold MAE, then the blend built on top of it.
-    best_key = min(poly_oof, key=lambda k: np.mean(np.abs(poly_oof[k] - y)))
+    best_key = min(poly_oof,
+                   key=lambda k: np.mean(np.abs((poly_oof[k] - y)[_covered(poly_oof[k])])))
     best_poly_oof = poly_oof[best_key]
     weight = _sweep_weight(best_poly_oof, tree_oof, y)
     blend_oof = weight * best_poly_oof + (1.0 - weight) * tree_oof
 
     blend_folds = []
     for _, va in fold_indices(frame):
-        blend_folds.append(float(np.mean(np.abs(blend_oof[va] - y[va]))))
+        cov = va[_covered(blend_oof)[va]]
+        if len(cov):
+            blend_folds.append(float(np.mean(np.abs(blend_oof[cov] - y[cov]))))
 
     rows.append({
         "model": f"BLEND w={weight:.2f} (poly{best_key[0]} a={best_key[1]:g} + trees)",
@@ -173,6 +196,8 @@ def _sweep_weight(poly_oof: np.ndarray, tree_oof: np.ndarray,
     Both inputs are out-of-fold predictions, so the weight has never seen a row
     in the same fit that produced its prediction. It never touches test data.
     """
+    m = _covered(poly_oof, tree_oof)
+    poly_oof, tree_oof, y = poly_oof[m], tree_oof[m], y[m]
     maes = [np.mean(np.abs(w * poly_oof + (1.0 - w) * tree_oof - y))
             for w in BLEND_STEPS]
     return float(BLEND_STEPS[int(np.argmin(maes))])
@@ -195,7 +220,7 @@ def fit_reference_model(train_valid: pd.DataFrame) -> dict:
         for alpha in ALPHAS:
             oof, per_fold = _oof_predictions(
                 X, y, frame, lambda d=degree, a=alpha: _poly(d, a), is_poly=True)
-            mae = float(np.mean(np.abs(oof - y)))
+            mae = float(np.mean(np.abs((oof - y)[_covered(oof)])))
             if best is None or mae < best["mae"]:
                 best = {"degree": degree, "alpha": alpha, "mae": mae,
                         "oof": oof, "per_fold": per_fold}
@@ -204,8 +229,11 @@ def fit_reference_model(train_valid: pd.DataFrame) -> dict:
     weight = _sweep_weight(best["oof"], tree_oof, y)
     blend_oof = weight * best["oof"] + (1.0 - weight) * tree_oof
 
-    per_fold_blend = [float(np.mean(np.abs(blend_oof[va] - y[va])))
-                      for _, va in fold_indices(frame)]
+    per_fold_blend = []
+    for _, va in fold_indices(frame):
+        cov = va[_covered(blend_oof)[va]]
+        if len(cov):
+            per_fold_blend.append(float(np.mean(np.abs(blend_oof[cov] - y[cov]))))
 
     # --- refit stage: the selected configuration, fitted on all Valid rows ----
     poly = _poly(best["degree"], best["alpha"]).fit(X, y)

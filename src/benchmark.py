@@ -349,14 +349,20 @@ def run_ablations(train: pd.DataFrame) -> pd.DataFrame:
 def try_add_team_entries(train: pd.DataFrame, rows: List[Dict]) -> None:
     # P1 twin
     try:
-        from src.twin import predict_validity, fit_twin
+        from src.twin import predict_validity, fit_twin, derive_threshold
         y = is_invalid(train).values
         pred_arr = np.full(len(train), -1, dtype=int)
         prob_arr = np.zeros(len(train))
         for tr, va in fold_indices(train):
-            state = fit_twin(train.iloc[tr].reset_index(drop=True))
-            res = predict_validity(train.iloc[va].reset_index(drop=True), state)
-            preds = (res[TARGET_CLS] == "Invalid").astype(int).values
+            # Refit the twin AND re-derive its threshold inside each fold, so the
+            # held-out rows never influence either. fit_twin filters to Valid
+            # rows itself when Validity_Label is present.
+            fold_train = train.iloc[tr].reset_index(drop=True)
+            state = fit_twin(fold_train)
+            threshold = derive_threshold(valid_rows(fold_train), state)
+            res = predict_validity(train.iloc[va].reset_index(drop=True),
+                                   state, threshold)
+            preds = (res == "Invalid").astype(int).values
             pred_arr[va] = preds
             prob_arr[va] = preds.astype(float)
         sc = clf_scores(y, pred_arr, prob_arr)
@@ -370,13 +376,16 @@ def try_add_team_entries(train: pd.DataFrame, rows: List[Dict]) -> None:
 
     # P2 regression
     try:
-        from src.regress import predict_reference
+        from src.regress import fit_reference_model, predict_reference
         valid = valid_rows(train)
         y = valid[TARGET_REG].values
         pred_arr = np.zeros(len(valid))
         for tr, va in fold_indices(valid):
-            pred_arr[va] = predict_reference(valid.iloc[tr].reset_index(drop=True),
-                                              valid.iloc[va].reset_index(drop=True))
+            # fit_reference_model runs its own inner selection on whatever frame
+            # it is given, so the held-out fold stays untouched.
+            model = fit_reference_model(valid.iloc[tr].reset_index(drop=True))
+            pred_arr[va] = predict_reference(
+                valid.iloc[va].reset_index(drop=True), model).values
         folds_list = list(fold_indices(valid))
         fold_maes = [mean_absolute_error(y[va], pred_arr[va]) for _, va in folds_list]
         sc = reg_scores(y, pred_arr, fold_maes)
